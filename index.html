@@ -1,122 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>IP Analyzer Tool</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #0f172a;
-            color: white;
-            text-align: center;
-            padding: 40px;
-        }
+<meta charset="UTF-8">
+<title>IP Analyzer</title>
 
-        .box {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px auto;
-            width: 350px;
-        }
+<style>
+body {
+    font-family: Consolas, monospace;
+    background: #0f2a44;
+    color: #d1d5db;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 40px;
+}
 
-        input {
-            padding: 10px;
-            width: 80%;
-            margin: 10px;
-            border-radius: 5px;
-            border: none;
-        }
+.card {
+    background: #111827;
+    border-radius: 6px;
+    width: 300px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
 
-        button {
-            padding: 10px 15px;
-            background: #38bdf8;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+.header {
+    background: #0f766e;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+}
 
-        button:hover {
-            background: #0ea5e9;
-        }
+.input {
+    background: #1e3a5f;
+    padding: 8px;
+    color: #22c55e;
+}
 
-        .output {
-            margin-top: 15px;
-            text-align: left;
-        }
-    </style>
+.content {
+    padding: 15px;
+    font-size: 14px;
+}
+
+.valid { color: #22c55e; }
+.invalid { color: #ef4444; }
+.highlight { color: #38bdf8; }
+
+button {
+    margin-top: 10px;
+    padding: 6px 10px;
+    background: #38bdf8;
+    border: none;
+    cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-    <h1>🌐 IP Address Tool</h1>
-
-    <!-- IP Analyzer -->
-    <div class="box">
-        <h2>Analyze IP</h2>
-        <input type="text" id="ipInput" placeholder="Enter IP address">
-        <br>
-        <button onclick="analyzeIP()">Analyze</button>
-        <div class="output" id="ipResult"></div>
+<!-- IPv4 -->
+<div class="card">
+    <div class="header">IPv4 Analysis</div>
+    <div class="input">
+        Input: <input id="ipv4Input" placeholder="192.168.1.1/24">
+        <button onclick="analyzeIPv4()">Run</button>
     </div>
+    <div class="content" id="ipv4Output"></div>
+</div>
 
-    <!-- Subnet Calculator -->
-    <div class="box">
-        <h2>Subnet Calculator</h2>
-        <input type="text" id="subnetInput" placeholder="192.168.1.0/24">
-        <br>
-        <button onclick="calculateSubnet()">Calculate</button>
-        <div class="output" id="subnetResult"></div>
+<!-- IPv6 -->
+<div class="card">
+    <div class="header">IPv6 Formatting</div>
+    <div class="input">
+        Input: <input id="ipv6Input" placeholder="2001:db8::1">
+        <button onclick="analyzeIPv6()">Run</button>
     </div>
+    <div class="content" id="ipv6Output"></div>
+</div>
+
+<!-- Error -->
+<div class="card">
+    <div class="header">Validation Error</div>
+    <div class="input">
+        Input: <input id="errorInput" placeholder="999.999.0.1">
+        <button onclick="validateIP()">Run</button>
+    </div>
+    <div class="content" id="errorOutput"></div>
+</div>
 
 <script>
-function analyzeIP() {
-    let ip = document.getElementById("ipInput").value;
-    let output = document.getElementById("ipResult");
+function analyzeIPv4() {
+    let val = document.getElementById("ipv4Input").value;
+    let out = document.getElementById("ipv4Output");
 
-    // Simple validation
-    if (ip.includes(".")) {
-        output.innerHTML = `
-            ✅ VALID IP ADDRESS<br>
-            Address: ${ip}<br>
-            Type: IPv4<br>
-            Class: ${getIPv4Class(ip)}
+    try {
+        let [ip, prefix] = val.split("/");
+        let parts = ip.split(".").map(Number);
+
+        if (parts.length !== 4 || parts.some(p => p > 255)) throw "err";
+
+        let totalHosts = Math.pow(2, 32 - prefix);
+        let network = parts[0] + "." + parts[1] + "." + parts[2] + ".0";
+        let broadcast = parts[0] + "." + parts[1] + "." + parts[2] + ".255";
+
+        out.innerHTML = `
+        <div class="highlight">📡 SUBNET INFORMATION</div><br>
+        Network Address: ${network}<br>
+        Broadcast Address: ${broadcast}<br>
+        Total Hosts: ${totalHosts}<br>
+        First Host: ${parts[0]}.${parts[1]}.${parts[2]}.1<br>
+        Last Host: ${parts[0]}.${parts[1]}.${parts[2]}.254
         `;
-    } else if (ip.includes(":")) {
-        output.innerHTML = `
-            ✅ VALID IP ADDRESS<br>
-            Address: ${ip}<br>
-            Type: IPv6
-        `;
-    } else {
-        output.innerHTML = "❌ INVALID IP ADDRESS";
+    } catch {
+        out.innerHTML = `<span class="invalid">❌ INVALID INPUT</span>`;
     }
 }
 
-function getIPv4Class(ip) {
-    let first = parseInt(ip.split(".")[0]);
+function analyzeIPv6() {
+    let ip = document.getElementById("ipv6Input").value;
+    let out = document.getElementById("ipv6Output");
 
-    if (first >= 10 && first <= 172) return "Private";
-    if (first === 127) return "Loopback";
-    return "Public";
+    if (!ip.includes(":")) {
+        out.innerHTML = `<span class="invalid">❌ INVALID IP ADDRESS</span>`;
+        return;
+    }
+
+    out.innerHTML = `
+    <span class="valid">✔ VALID IP ADDRESS</span><br>
+    Address: ${ip}<br>
+    Type: IPv6<br>
+    Expanded: (simplified)<br>
+    Compressed: ${ip}<br>
+    Type: Unique Local (Private)
+    `;
 }
 
-function calculateSubnet() {
-    let input = document.getElementById("subnetInput").value;
-    let output = document.getElementById("subnetResult");
+function validateIP() {
+    let ip = document.getElementById("errorInput").value;
+    let out = document.getElementById("errorOutput");
 
-    try {
-        let [ip, prefix] = input.split("/");
-        prefix = parseInt(prefix);
+    let valid = /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) &&
+        ip.split(".").every(n => n >= 0 && n <= 255);
 
-        let totalHosts = Math.pow(2, 32 - prefix);
-
-        output.innerHTML = `
-            📡 SUBNET INFO<br>
-            Network: ${ip}/${prefix}<br>
-            Total Hosts: ${totalHosts}
+    if (!valid) {
+        out.innerHTML = `
+        <span class="invalid">❌ INVALID IP ADDRESS</span>
         `;
-    } catch {
-        output.innerHTML = "❌ INVALID INPUT";
+    } else {
+        out.innerHTML = `<span class="valid">✔ VALID</span>`;
     }
 }
 </script>
