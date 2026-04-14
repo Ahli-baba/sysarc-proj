@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IP Analyzer Tool</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .box {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            width: 350px;
+        }
+
+        input {
+            padding: 10px;
+            width: 80%;
+            margin: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0ea5e9;
+        }
+
+        .output {
+            margin-top: 15px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌐 IP Address Tool</h1>
+
+    <!-- IP Analyzer -->
+    <div class="box">
+        <h2>Analyze IP</h2>
+        <input type="text" id="ipInput" placeholder="Enter IP address">
+        <br>
+        <button onclick="analyzeIP()">Analyze</button>
+        <div class="output" id="ipResult"></div>
+    </div>
+
+    <!-- Subnet Calculator -->
+    <div class="box">
+        <h2>Subnet Calculator</h2>
+        <input type="text" id="subnetInput" placeholder="192.168.1.0/24">
+        <br>
+        <button onclick="calculateSubnet()">Calculate</button>
+        <div class="output" id="subnetResult"></div>
+    </div>
+
+<script>
+function analyzeIP() {
+    let ip = document.getElementById("ipInput").value;
+    let output = document.getElementById("ipResult");
+
+    // Simple validation
+    if (ip.includes(".")) {
+        output.innerHTML = `
+            ✅ VALID IP ADDRESS<br>
+            Address: ${ip}<br>
+            Type: IPv4<br>
+            Class: ${getIPv4Class(ip)}
+        `;
+    } else if (ip.includes(":")) {
+        output.innerHTML = `
+            ✅ VALID IP ADDRESS<br>
+            Address: ${ip}<br>
+            Type: IPv6
+        `;
+    } else {
+        output.innerHTML = "❌ INVALID IP ADDRESS";
+    }
+}
+
+function getIPv4Class(ip) {
+    let first = parseInt(ip.split(".")[0]);
+
+    if (first >= 10 && first <= 172) return "Private";
+    if (first === 127) return "Loopback";
+    return "Public";
+}
+
+function calculateSubnet() {
+    let input = document.getElementById("subnetInput").value;
+    let output = document.getElementById("subnetResult");
+
+    try {
+        let [ip, prefix] = input.split("/");
+        prefix = parseInt(prefix);
+
+        let totalHosts = Math.pow(2, 32 - prefix);
+
+        output.innerHTML = `
+            📡 SUBNET INFO<br>
+            Network: ${ip}/${prefix}<br>
+            Total Hosts: ${totalHosts}
+        `;
+    } catch {
+        output.innerHTML = "❌ INVALID INPUT";
+    }
+}
+</script>
+
+</body>
+</html>
